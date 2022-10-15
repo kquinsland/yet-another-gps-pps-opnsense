@@ -1,9 +1,9 @@
 # Yet Another GPS/PPS disciplined (opn/pf)sense thing
 
 The core concept isn't anything "new" or "innovative" (see [below](#prior-work)) but the specific implementation is.
-While the implementation was specific to my needs, I'm publishing it because it may be useful for others as well.
+While the implementation was specific to my needs, I'm publishing it because it [may be useful for others as well](#license).
 
-// TODO: assembled/installed pic
+![Picture showing PCB mounted to PCI bracket installed in server.](./docs/installed_01.jpg)
 
 ## TL;DR
 
@@ -37,6 +37,7 @@ This is a simple project that allows me to integrate a commodity GPS receiver mo
         - [Issue: The (optional) LEDs on the PCB are not labeled](#issue-the-optional-leds-on-the-pcb-are-not-labeled)
         - [Issue: The power connector for the PCB](#issue-the-power-connector-for-the-pcb)
   - [Print the bracket](#print-the-bracket)
+    - [Additional files](#additional-files)
   - [Assemble](#assemble)
   - [Testing](#testing)
   - [Results](#results)
@@ -66,13 +67,15 @@ This entire project is made up of 3 components:
 
 ### PCB
 
-It's a pretty simple PCB that can be soldered up in less than an hour... and that includes plenty of time spent looking for where I put some of the components :D.
+It's a pretty simple PCB that can be soldered up in less than an hour... and that includes plenty of time spent looking for where I put some of the components!
 
-There are a few things that I want to call attention to.
+Despite the simplicity, there are a few things that I want to call attention to.
 
 #### Note: `PPS` pin
 
-The PPS signal is sent over the RS-232 pin 1 (`DCD`). I don't know where/if/how you'd configure `ntpd` to check a _different_ pin for this signal and other known
+The PPS signal is sent over the RS-232 pin 1 (`DCD`).
+I don't know where/if/how you'd configure `ntpd` to check a _different_ pin for this signal; I can't find anything obvious in the opnSense/pfSense documentation about this.
+The other schematics / designs / implementations that I referenced above all use pin 1 for PPS so I just went with the convention.
 
 #### Note: Supermicro and generic
 
@@ -80,8 +83,16 @@ The PCB was designed for my motherboard ([X11SDV-8C-TP8F](https://www.supermicro
 If you google that part number, you'll find that the specific cable is not common or cheap.
 
 After a bit of sleuthing, I was able to figure out that the connector on the motherboard is a 2x5 version from the `Molex MiliGrid` family.
+
 I hate crimping cables so I placed an order for 2x [pre-made cable pigtails](https://www.mouser.com/ProductDetail/538-218510-1100) with the intent of just adding whatever length of wire was necessary.
+
 As it turns out, the 50mm cables are _just_ long enough so just soldered the two pig tails together and then removed the extra / unneeded wires.
+
+![Photo showing PCB/bracket installed in server. The cable made from 2x pre-crimped pigtails is just long enough](./docs/installed_02.jpg)
+
+Close up, the cable looks like this:
+
+![Photo showing motherboard to PCB cable completed. The unnecessary wires have been removed](./docs/assy_02_cable_done.jpg)
 
 To make this PCB usable in other cases, there is a `generic` pin header that breaks out the required signals to a standard pin header that can be adopted to work with whatever other connector/adapter is necessary for your use case.
 
@@ -106,7 +117,7 @@ While doing the initial assembly, I compiled this list of improvements and other
 Fortunately, the interactive [BOM / PCB layout tool](eCad/../eCAD/bom/ibom.html) has you covered!
 If in doubt, just make sure that your chip has Pin 1 attached to the pad that faces C{1,3,5} as shown here:
 
-// TODO: close up of chip
+![Super close up of the chip installed properly. In this picture, pin1 is top right.](./docs/detail_01_chip.jpg)
 
 ##### Issue: mounting holes in PCB are too large
 
@@ -116,7 +127,7 @@ I'm not sure what happened, but somehow the diameter of the holes is about the s
 You can work around this with a simple washer as shown below.
 Additionally, if you're not going to use the PCB mount power connector, a ziptie will keep the PCB in place
 
-// TODO: pic
+![PCB is held into the plastic frame with a m3x4mm screw and basic washer.](./docs/detail_02_screw.jpg)
 
 ##### Issue: `RXD` and `TXD` are confusing
 
@@ -158,12 +169,19 @@ Any source of 5v will work, you don't need to use the connector that I've shown 
 Speeds and feeds are up to you; some cases are much more forgiving of an "out of spec" PCI card and others - like mine - are not.
 Print as slow as needed to get as precise as needed.
 
-Using PLA and my tweaked "`.2mm / quality`" setting with a 6mm nozzle took about an hour.
+Using PLA and my tweaked "`.2mm / quality`" setting with a `.6mm` nozzle took about an hour.
 
 Only time will tell if PLA was an inappropriate choice for inside of this server.
 I'd like to think that the ventilation and cooling are sufficient but I might be re-printing the bracket in ABS if I notice any warping.
 
-// TODO: screenshot of print gcode
+![Picture of suggested print orientation.](./docs/suggested_print_orientation.png)
+
+> **Note**
+> For best results, you'll need a TINY amount of support material (shown in green above) for the ends of the PCI blank that are not flush with the print bed.
+
+### Additional files
+
+I've also included models of the GPS module and PCB in `STEP` format should they be useful in creating an alternate enclosure or application
 
 ## Assemble
 
@@ -172,12 +190,17 @@ This is pretty straightforward.
 Use the interactive [BOM / PCB layout tool](eCad/../eCAD/bom/ibom.html) if you have questions.
 If your question isn't answered there, the [KiCad project files](eCAD/opnsense-gps-pps.kicad_pro) should have you covered :D.
 
+When done, it should look something like this:
+
+![Photo showing assembled PCB installed on printed PCI bracket](./docs/assy_done.jpg)
 
 ## Testing
 
 Pro tip: test your cheap hand made electronics before integrating them into your expensive and "critical path / production" computers.
 
-// TODO: testing pic external
+![PCB wired up to power supply and a RS232 to USB adapter. I could see valid data coming in from the GPS module over the RS232 port!](./docs/test_ext.jpg)
+
+Using a terminal program, I could see valid packets coming in. This told me that the lever converter was working and the RS232 <-> USB converter was happy with the levels.... a good sign!
 
 After installing into your system, you can use a serial modem terminal application to verify data coming in or to check _which_ serial port data is coming in on.
 Opnsense has the `cu` binary installed and can be used like so:
@@ -220,5 +243,10 @@ Just look at that (lack of) jitter :D
 ## License
 
 Other than the content of the `data-sheets` directory, all files in this repo are licensed under
+[CC BY-NC-SA 4.0 license](https://creativecommons.org/licenses/by-nc-sa/4.0/) which permits:
 
-/// BLAH
+```text
+    BY: Credit must be given to you, the creator.
+    NC: Only noncommercial use of your work is permitted. Noncommercial means not primarily intended for or directed towards commercial advantage or monetary compensation.
+    SA: Adaptations must be shared under the same terms.
+```
