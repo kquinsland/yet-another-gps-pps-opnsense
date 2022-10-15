@@ -1,0 +1,5 @@
+# KiCad auto saves
+opnsense-gps-pps-backups/*
+
+# Misc KiCad
+fp-info-cache
